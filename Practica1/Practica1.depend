@@ -1,0 +1,27 @@
+# depslib dependency file v1.0
+1581724472 source:c:\users\usuario\desktop\practica1\main.cpp
+	<curses.h>
+	<iostream>
+	<string>
+	<windows.h>
+
+1216142005 c:\codeblocks\pdcurs34\curses.h
+	<stdarg.h>
+	<stddef.h>
+	<stdio.h>
+	<wchar.h>
+
+1581719450 source:c:\users\usuario\desktop\practica1\caracters.cpp
+	<iostream>
+	<stdio.h>
+	<conio.h>
+	<string>
+	<cstdlib>
+	<windows.h>
+	"Caracters.h"
+
+1581719439 c:\users\usuario\desktop\practica1\caracters.h
+	<iostream>
+	<string>
+	<cstdlib>
+
