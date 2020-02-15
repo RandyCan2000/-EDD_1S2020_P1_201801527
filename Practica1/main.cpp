@@ -63,8 +63,20 @@ void ImprimirLista(LCD &Inicio){
 
 LCD InicioLDC=NULL;
 LCD FinLDC=NULL;
-int _tmain(){
+
+void MenuOpcionEditor(){
+    move(0,0);
+    refresh();
+    cout<<"^W BUSCAR Y REEMPLAZAR   ";
+    cout<<"^C REPORTES  ";
+    cout<<"^S GUARDAR   ";
+    move(0,0);
+    refresh();
+}
+
+void Editor(){
     initscr();
+    MenuOpcionEditor();
     int c;
     int blanco=32;
     string cadena;
@@ -75,8 +87,9 @@ int _tmain(){
             cout<<" ";
         }else if(c==13){
             InsertarALFinal(InicioLDC,FinLDC,"enter");
-            clear();
             int fila=wherey()+1;
+            clear();
+            MenuOpcionEditor();
             ImprimirLista(InicioLDC);
             move(fila,0);
             refresh();
@@ -88,6 +101,37 @@ int _tmain(){
     cout<<"FIN DEL PROGRAMA...";
     system("pause");
     endwin();
+}
+
+int Menu(){
+    int Opcion;
+    cout<<"UNIVERSIDAD SAN CARLOS DE GUATEMALA\n";
+    cout<<"FACULTAD DE INGENIERIA\n";
+    cout<<"ESTRUCTURA DE DATOS\n";
+    cout<<"PRACTICA 1\n";
+    cout<<"RANDY ALEXANDER CAN AJUCHAN\n";
+    cout<<"201801527\n";
+
+    cout<<"     MENU:\n";
+    cout<<"     1. CREAR ARCHIVO\n";
+    cout<<"     2. ABRIR ARCHIVO\n";
+    cout<<"     3. ARCHIVOS RECIENTES\n";
+    cout<<"     4. SALIR\n";
+    cin>>Opcion;
+    return Opcion;
+}
+
+int _tmain(){
+    int Opcion;
+    do{
+        Opcion=Menu();
+        if(Opcion==1){
+            Editor();
+        }else if(Opcion==2){
+        }else if(Opcion==3){
+        }
+    }while(Opcion!=4);
+
     return 0;
 }
 

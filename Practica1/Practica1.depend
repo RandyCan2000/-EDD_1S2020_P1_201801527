@@ -25,3 +25,9 @@
 	<string>
 	<cstdlib>
 
+1581726584 source:c:\users\usuario\desktop\edl\practica1\main.cpp
+	<curses.h>
+	<iostream>
+	<string>
+	<windows.h>
+
