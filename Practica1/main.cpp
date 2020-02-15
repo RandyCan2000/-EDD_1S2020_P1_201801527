@@ -1,5 +1,6 @@
 
 #include <curses.h>
+
 #include <iostream>
 #include <string>
 #include <windows.h>
@@ -58,9 +59,13 @@ void ImprimirLista(LCD &Inicio){
     LCD Aux=Inicio;
     while(true){
         if(Aux->Caracter=="enter"){cout<<"\n";}
-        else{Aux->Fila=wherey();Aux->Columna=wherex();cout<<Aux->Caracter;}
+        else{cout<<Aux->Caracter;}
+        Aux->Fila=wherey();
+        Aux->Columna=wherex();
         Aux=Aux->sig;
-        if(Aux==NULL){break;}
+        if(Aux==NULL){
+                move(FilaGeneral,ColumnaGeneral);refresh();
+                break;}
     }
 }
 
@@ -77,21 +82,22 @@ void MenuOpcionEditor(){
     refresh();
 }
 void BuscarRemplMenu(){
-    move(FilaGeneral+1,0);
-    string Palabra;
-    cout<<"INGRESE LA PALABRA A REMPLAZAR\n";
-    cout<<"EJEMPLO(PALABRA;REEMPLAZO)\n";
-    cin >> Palabra;
-    cout<<Palabra;
+    string PALBR;
+    system("cls");
+    printw("\n");
+    printw("INGRESE LA PALABRA A REEMPLAZAR \n");
+    printw("EJEMPLO(HOLA;HOLA2): ");
+    scanw("%s",PALBR);
     system("pause");
-    move(FilaGeneral+1,0);
-    cout<<"                                                                            \n";
-    cout<<"                                                                            \n";
-    cout<<"                                                                            \n";
-    cout<<"                                                                            \n";
-    cout<<"                                                                            \n";
-    move(FilaGeneral,ColumnaGeneral);
+    system("cls");
+    MenuOpcionEditor();
+    ImprimirLista(InicioLDC);
 }
+void gotoxy(int x, int y){
+		   COORD coord;
+		   coord.X = x;
+		   coord.Y = y;
+		   SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);}
 void Editor(){
     initscr();
     MenuOpcionEditor();
@@ -115,6 +121,13 @@ void Editor(){
             }
             move(fila,columna);refresh();
             cout<<" ";refresh();
+        }else if(c==16){
+            FilaGeneral=wherey();ColumnaGeneral=wherex();
+            system("cls");
+            MenuOpcionEditor();
+            ImprimirLista(InicioLDC);
+            move(FilaGeneral,ColumnaGeneral);
+            refresh();
         }
         else if(c==23){
             FilaGeneral=wherey();ColumnaGeneral=wherex();
@@ -127,9 +140,11 @@ void Editor(){
             ImprimirLista(InicioLDC);
             move(fila,0);refresh();
         }else{
+            printw("%c",c);
             cadena=char(c);
             InsertarALFinal(InicioLDC,FinLDC,cadena);
         }
+        refresh();
     }while(c!=20);
     cout<<"FIN DEL PROGRAMA...";
     endwin();
