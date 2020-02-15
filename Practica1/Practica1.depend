@@ -25,9 +25,11 @@
 	<string>
 	<cstdlib>
 
-1581787257 source:c:\users\usuario\desktop\edl\practica1\main.cpp
+1581810478 source:c:\users\usuario\desktop\edl\practica1\main.cpp
 	<curses.h>
 	<iostream>
 	<string>
 	<windows.h>
+	<stdio.h>
+	<string.h>
 

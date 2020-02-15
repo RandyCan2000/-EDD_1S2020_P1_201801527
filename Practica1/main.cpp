@@ -5,9 +5,13 @@
 #include <string>
 #include <windows.h>
 #define _tmain main
+#include <stdio.h>
+#include <string.h>
 using namespace std;
 int FilaGeneral;
 int ColumnaGeneral;
+string PalB;
+string PalR;
 int wherex(){
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
@@ -68,6 +72,19 @@ void ImprimirLista(LCD &Inicio){
     }
 }
 
+void SplitBR(string PALABRA){
+    string delimiter = ";";
+    size_t pos = 0;
+    string token;
+    while ((pos = PALABRA.find(delimiter)) != string::npos) {
+        token = PALABRA.substr(0, pos);
+        PalB=token;
+        PALABRA.erase(0, pos + delimiter.length());}
+    PalR=PALABRA;
+}
+
+
+
 LCD InicioLDC=NULL;
 LCD FinLDC=NULL;
 void RecargarEditor(){
@@ -75,6 +92,7 @@ void RecargarEditor(){
     move(0,0);
     refresh();
 }
+
 
 void MenuOpcionEditor(){
     move(0,0);
@@ -85,34 +103,16 @@ void MenuOpcionEditor(){
     move(0,0);
     refresh();
 }
-void BuscarRempl(string PalB,string PalR){
+void BuscarRempl(){
     LCD Aux=InicioLDC;
     LCD Espacio;
     int ContarEspacios=0;
     string PalEncontrada;
     do{
-        if(Aux==InicioLDC){
-            if(Aux->Caracter==" "){Espacio=Aux;ContarEspacios++;}
-            else{PalEncontrada+=Aux->Caracter;ContarEspacios++;}
-        }else if((Aux->Caracter==" "||Aux->Caracter=="enter")&& ContarEspacios==0){
-            ContarEspacios++;
-            Espacio=Aux;
-        }else if((Aux->Caracter==" "||Aux->Caracter=="enter")&& ContarEspacios==1){
-            cout<<PalEncontrada;
-            system("pause");
-            ContarEspacios=0;
-        }else{
-            PalEncontrada+=Aux->Caracter;
-        }
-        Aux=Aux->sig;
-        if(Aux==NULL){break;}
+
     }while(true);
 }
-void gotoxy(int x, int y){
-		   COORD coord;
-		   coord.X = x;
-		   coord.Y = y;
-		   SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);}
+
 void Editor(){
     initscr();
     MenuOpcionEditor();
@@ -142,16 +142,16 @@ void Editor(){
             refresh();
         }
         else if(c==23){
-            string pal;
             FilaGeneral=wherey();ColumnaGeneral=wherex();
             move(0,0);refresh();
             string PALBR;
             clear();
             printw("INGRESE LA PALABRA A REEMPLAZAR \n");
-            printw("EJEMPLO(HOLA;HOLA2): ");
-            scanw("%s",PALBR);
+            printw("EJEMPLO(HOLA;HOLA2)\n");
+            scanw("%s",PALBR);refresh();
+            SplitBR(PALBR);
             //METODO BUSCAR Y REEMPLAZAR
-            BuscarRempl("HOLA","a");
+            //BuscarRempl();
             clear();
             MenuOpcionEditor();
             ImprimirLista(InicioLDC);
@@ -199,6 +199,7 @@ int _tmain(){
         if(Opcion==1){
             Editor();
         }else if(Opcion==2){
+
         }else if(Opcion==3){
         }
     }while(Opcion!=4);
