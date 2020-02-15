@@ -5,7 +5,8 @@
 #include <windows.h>
 #define _tmain main
 using namespace std;
-
+int FilaGeneral;
+int ColumnaGeneral;
 int wherex(){
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
@@ -20,6 +21,8 @@ int wherey(){
 //          Estructuras
 struct Caracteres{
 	  string Caracter;
+	  int Fila;
+	  int Columna;
 	  struct Caracteres *sig=NULL;
 	  struct Caracteres *ant=NULL;};
 typedef struct Caracteres *LCD;
@@ -28,7 +31,7 @@ typedef struct Caracteres *LCD;
 
 void InsertarALFinal(LCD &Inicio, LCD &Fin, string Caracter){
     LCD Nuevo=new (struct Caracteres);
-    Nuevo->Caracter=Caracter;
+    Nuevo->Caracter=Caracter;Nuevo->Fila=wherey();Nuevo->Columna=wherex();
     if(Inicio==NULL){
         Inicio=Nuevo;
         Fin=Inicio;
@@ -55,7 +58,7 @@ void ImprimirLista(LCD &Inicio){
     LCD Aux=Inicio;
     while(true){
         if(Aux->Caracter=="enter"){cout<<"\n";}
-        else{cout<<Aux->Caracter;}
+        else{Aux->Fila=wherey();Aux->Columna=wherex();cout<<Aux->Caracter;}
         Aux=Aux->sig;
         if(Aux==NULL){break;}
     }
@@ -73,35 +76,65 @@ void MenuOpcionEditor(){
     move(0,0);
     refresh();
 }
-
+void BuscarRemplMenu(){
+    move(FilaGeneral+1,0);
+    string Palabra;
+    cout<<"INGRESE LA PALABRA A REMPLAZAR\n";
+    cout<<"EJEMPLO(PALABRA;REEMPLAZO)\n";
+    cin >> Palabra;
+    cout<<Palabra;
+    system("pause");
+    move(FilaGeneral+1,0);
+    cout<<"                                                                            \n";
+    cout<<"                                                                            \n";
+    cout<<"                                                                            \n";
+    cout<<"                                                                            \n";
+    cout<<"                                                                            \n";
+    move(FilaGeneral,ColumnaGeneral);
+}
 void Editor(){
     initscr();
     MenuOpcionEditor();
     int c;
     int blanco=32;
+    int columna;
+    int fila;
     string cadena;
     string BuscarRemplazar;
     do{
         c=getchar();
         if(c==8){
-            cout<<" ";
+            BorrarUltimo(InicioLDC,FinLDC);
+            columna=wherex()-1;
+            fila=wherey();
+            if(columna==-1){
+                LCD aux=FinLDC;
+                fila=aux->Fila;
+                columna=aux->Columna;
+                if(aux->Caracter=="enter"){BorrarUltimo(InicioLDC,FinLDC);}
+            }
+            move(fila,columna);refresh();
+            cout<<" ";refresh();
+        }
+        else if(c==23){
+            FilaGeneral=wherey();ColumnaGeneral=wherex();
+            BuscarRemplMenu();
         }else if(c==13){
             InsertarALFinal(InicioLDC,FinLDC,"enter");
             int fila=wherey()+1;
             clear();
             MenuOpcionEditor();
             ImprimirLista(InicioLDC);
-            move(fila,0);
-            refresh();
+            move(fila,0);refresh();
         }else{
             cadena=char(c);
             InsertarALFinal(InicioLDC,FinLDC,cadena);
         }
     }while(c!=20);
     cout<<"FIN DEL PROGRAMA...";
-    system("pause");
     endwin();
 }
+
 
 int Menu(){
     int Opcion;
