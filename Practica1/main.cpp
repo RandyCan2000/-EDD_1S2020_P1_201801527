@@ -58,19 +58,23 @@ void ImprimirLista(LCD &Inicio){
     move(0,0);refresh();
     LCD Aux=Inicio;
     while(true){
+        Aux->Fila=wherey();Aux->Columna=wherex();
         if(Aux->Caracter=="enter"){cout<<"\n";}
         else{cout<<Aux->Caracter;}
-        Aux->Fila=wherey();
-        Aux->Columna=wherex();
         Aux=Aux->sig;
         if(Aux==NULL){
-                move(FilaGeneral,ColumnaGeneral);refresh();
-                break;}
+        move(FilaGeneral,ColumnaGeneral);refresh();
+        break;}
     }
 }
 
 LCD InicioLDC=NULL;
 LCD FinLDC=NULL;
+void RecargarEditor(){
+    initscr();
+    move(0,0);
+    refresh();
+}
 
 void MenuOpcionEditor(){
     move(0,0);
@@ -81,17 +85,28 @@ void MenuOpcionEditor(){
     move(0,0);
     refresh();
 }
-void BuscarRemplMenu(){
-    string PALBR;
-    system("cls");
-    printw("\n");
-    printw("INGRESE LA PALABRA A REEMPLAZAR \n");
-    printw("EJEMPLO(HOLA;HOLA2): ");
-    scanw("%s",PALBR);
-    system("pause");
-    system("cls");
-    MenuOpcionEditor();
-    ImprimirLista(InicioLDC);
+void BuscarRempl(string PalB,string PalR){
+    LCD Aux=InicioLDC;
+    LCD Espacio;
+    int ContarEspacios=0;
+    string PalEncontrada;
+    do{
+        if(Aux==InicioLDC){
+            if(Aux->Caracter==" "){Espacio=Aux;ContarEspacios++;}
+            else{PalEncontrada+=Aux->Caracter;ContarEspacios++;}
+        }else if((Aux->Caracter==" "||Aux->Caracter=="enter")&& ContarEspacios==0){
+            ContarEspacios++;
+            Espacio=Aux;
+        }else if((Aux->Caracter==" "||Aux->Caracter=="enter")&& ContarEspacios==1){
+            cout<<PalEncontrada;
+            system("pause");
+            ContarEspacios=0;
+        }else{
+            PalEncontrada+=Aux->Caracter;
+        }
+        Aux=Aux->sig;
+        if(Aux==NULL){break;}
+    }while(true);
 }
 void gotoxy(int x, int y){
 		   COORD coord;
@@ -110,17 +125,14 @@ void Editor(){
     do{
         c=getchar();
         if(c==8){
+            if(FinLDC->Caracter=="enter"){BorrarUltimo(InicioLDC,FinLDC);}
+            int f=FinLDC->Fila;
+            int c=FinLDC->Columna;
             BorrarUltimo(InicioLDC,FinLDC);
-            columna=wherex()-1;
-            fila=wherey();
-            if(columna==-1){
-                LCD aux=FinLDC;
-                fila=aux->Fila;
-                columna=aux->Columna;
-                if(aux->Caracter=="enter"){BorrarUltimo(InicioLDC,FinLDC);}
-            }
-            move(fila,columna);refresh();
-            cout<<" ";refresh();
+            clear();
+            MenuOpcionEditor();
+            ImprimirLista(InicioLDC);
+            move(f,c);refresh();
         }else if(c==16){
             FilaGeneral=wherey();ColumnaGeneral=wherex();
             system("cls");
@@ -130,8 +142,19 @@ void Editor(){
             refresh();
         }
         else if(c==23){
+            string pal;
             FilaGeneral=wherey();ColumnaGeneral=wherex();
-            BuscarRemplMenu();
+            move(0,0);refresh();
+            string PALBR;
+            clear();
+            printw("INGRESE LA PALABRA A REEMPLAZAR \n");
+            printw("EJEMPLO(HOLA;HOLA2): ");
+            scanw("%s",PALBR);
+            //METODO BUSCAR Y REEMPLAZAR
+            BuscarRempl("HOLA","a");
+            clear();
+            MenuOpcionEditor();
+            ImprimirLista(InicioLDC);
         }else if(c==13){
             InsertarALFinal(InicioLDC,FinLDC,"enter");
             int fila=wherey()+1;
