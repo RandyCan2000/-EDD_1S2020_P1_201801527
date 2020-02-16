@@ -1,6 +1,4 @@
-
 #include <curses.h>
-
 #include <iostream>
 #include <string>
 #include <windows.h>
@@ -10,8 +8,11 @@
 using namespace std;
 int FilaGeneral;
 int ColumnaGeneral;
+int Ancho;
+int Alto;
 string PalB;
 string PalR;
+
 int wherex(){
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
@@ -22,6 +23,16 @@ int wherey(){
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
     return csbi.dwCursorPosition.Y;
 }
+void Resolucion(){
+    Ancho = (GetSystemMetrics(SM_CXSCREEN) / 8) - 2;
+    Alto = (GetSystemMetrics(SM_CYSCREEN) / 19) + 1;}
+void ALTENTER(){
+keybd_event(VK_MENU,0x38,0,0);
+keybd_event(VK_RETURN,0x1c,0,0);
+keybd_event(VK_RETURN,0x1c,KEYEVENTF_KEYUP,0);
+keybd_event(VK_MENU,0x38,KEYEVENTF_KEYUP,0);
+return;
+}
 
 //          Estructuras
 struct Caracteres{
@@ -31,7 +42,8 @@ struct Caracteres{
 	  struct Caracteres *sig=NULL;
 	  struct Caracteres *ant=NULL;};
 typedef struct Caracteres *LCD;
-
+LCD InicioLDC=NULL;
+LCD FinLDC=NULL;
 //                      LISTA DOBLE CARACTERES
 
 void InsertarALFinal(LCD &Inicio, LCD &Fin, string Caracter){
@@ -62,12 +74,19 @@ void ImprimirLista(LCD &Inicio){
     move(0,0);refresh();
     LCD Aux=Inicio;
     while(true){
-        Aux->Fila=wherey();Aux->Columna=wherex();
+        if(wherex()==Ancho-1){
+            Aux->Fila=wherey()+1;Aux->Columna=0;
+        }else{Aux->Fila=wherey();Aux->Columna=wherex();}
         if(Aux->Caracter=="enter"){cout<<"\n";}
         else{cout<<Aux->Caracter;}
         Aux=Aux->sig;
         if(Aux==NULL){
-        move(FilaGeneral,ColumnaGeneral);refresh();
+            int c=Ancho-2;
+            if(FinLDC->Columna==c){
+                move(int(FinLDC->Fila+1),0);refresh();
+            }else{
+                move(FinLDC->Fila,FinLDC->Columna+1);refresh();
+            }
         break;}
     }
 }
@@ -76,17 +95,14 @@ void SplitBR(string PALABRA){
     string delimiter = ";";
     size_t pos = 0;
     string token;
-    while ((pos = PALABRA.find(delimiter)) != string::npos) {
-        token = PALABRA.substr(0, pos);
-        PalB=token;
-        PALABRA.erase(0, pos + delimiter.length());}
+    pos = PALABRA.find(delimiter);
+    token = PALABRA.substr(0, pos);
+    PalB=token;
+    PALABRA.erase(0, pos + delimiter.size());
     PalR=PALABRA;
 }
 
 
-
-LCD InicioLDC=NULL;
-LCD FinLDC=NULL;
 void RecargarEditor(){
     initscr();
     move(0,0);
@@ -103,17 +119,43 @@ void MenuOpcionEditor(){
     move(0,0);
     refresh();
 }
+void RemplazarNodo_Agregar(LCD &PrimerLetra,LCD &Espacio2){
+    LCD Espacio=PrimerLetra->ant;
+    for(int i=0;i<PalR.size();i++){
+        LCD Nuevo=new (struct Caracteres);
+        Nuevo->Caracter=PalR[i];
+        Espacio->sig=Nuevo;
+        Nuevo->ant=Espacio;
+        Nuevo->sig=Espacio2;
+        Espacio2->ant=Nuevo;
+        Espacio=Nuevo;
+    }
+}
 void BuscarRempl(){
     LCD Aux=InicioLDC;
-    LCD Espacio;
+    LCD PrimLetra;
     int ContarEspacios=0;
-    string PalEncontrada;
-    do{
-
-    }while(true);
+    string PalEncontrada="";
+    while(true){
+        if(PalEncontrada=="" && Aux->Caracter!=" "){PrimLetra=Aux;PalEncontrada+=Aux->Caracter;}
+        else if(Aux->Caracter==" "||Aux->Caracter=="enter"){
+            if(PalB==PalEncontrada){
+                RemplazarNodo_Agregar(PrimLetra,Aux);
+                PalEncontrada="";
+            }
+        }else{
+            PalEncontrada+=Aux->Caracter;
+        }
+        Aux=Aux->sig;
+        if(Aux==NULL){break;}
+    }
 }
 
+
 void Editor(){
+    ALTENTER();
+    Resolucion();
+    string PALBR;
     initscr();
     MenuOpcionEditor();
     int c;
@@ -144,14 +186,13 @@ void Editor(){
         else if(c==23){
             FilaGeneral=wherey();ColumnaGeneral=wherex();
             move(0,0);refresh();
-            string PALBR;
             clear();
-            printw("INGRESE LA PALABRA A REEMPLAZAR \n");
-            printw("EJEMPLO(HOLA;HOLA2)\n");
-            scanw("%s",PALBR);refresh();
-            SplitBR(PALBR);
+            printw("INGRESE LA PALABRA A REEMPLAZAR Y LUEGO LA PALABRA CON LA QUE SE REEMPLAZARA\n");
+            printw("\n");
+            scanw("%s ; %s",PalB,PalR);
+            //SplitBR(PALBR);
             //METODO BUSCAR Y REEMPLAZAR
-            //BuscarRempl();
+            BuscarRempl();
             clear();
             MenuOpcionEditor();
             ImprimirLista(InicioLDC);
