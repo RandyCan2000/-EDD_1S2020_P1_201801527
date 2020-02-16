@@ -137,13 +137,13 @@ void BuscarRempl(){
     int ContarEspacios=0;
     string PalEncontrada="";
     while(true){
-        if(PalEncontrada=="" && Aux->Caracter!=" "){PrimLetra=Aux;PalEncontrada+=Aux->Caracter;}
-        else if(Aux->Caracter==" "||Aux->Caracter=="enter"){
-            if(PalB==PalEncontrada){
+        if(Aux->Caracter==" "||Aux->Caracter=="enter"){
+            if(PalEncontrada==PalB){
                 RemplazarNodo_Agregar(PrimLetra,Aux);
-                PalEncontrada="";
             }
+            PalEncontrada="";
         }else{
+            if(PalEncontrada==""){PrimLetra=Aux;}
             PalEncontrada+=Aux->Caracter;
         }
         Aux=Aux->sig;
@@ -203,6 +203,10 @@ void Editor(){
             MenuOpcionEditor();
             ImprimirLista(InicioLDC);
             move(fila,0);refresh();
+        }else if(c==24){
+            PalB="hola";
+            PalR="adop";
+            BuscarRempl();
         }else{
             printw("%c",c);
             cadena=char(c);
