@@ -5,11 +5,13 @@
 #define _tmain main
 #include <stdio.h>
 #include <string.h>
+#include <fstream>
 using namespace std;
 int FilaGeneral;
 int ColumnaGeneral;
 int Ancho;
 int Alto;
+boolean Permiso=false;
 string PalB;
 string PalR;
 
@@ -44,6 +46,31 @@ struct Caracteres{
 typedef struct Caracteres *LCD;
 LCD InicioLDC=NULL;
 LCD FinLDC=NULL;
+struct Rutas{
+    string Ruta;
+    string Nombre;
+    string Reporte1;
+    string Reporte2;
+    string Reporte3;
+struct Rutas *sig=NULL;};
+typedef struct Rutas *R;
+R InicioRutasLCS=NULL;
+R FinRutasLCS=NULL;
+//agregar a lista circular
+void AgregarRuta(string ruta){
+    R Nuevo=new (struct Rutas);
+    Nuevo->Ruta=ruta;
+    if(InicioRutasLCS==NULL){
+        InicioRutasLCS=Nuevo;
+        FinRutasLCS=Nuevo;
+        FinRutasLCS->sig=InicioRutasLCS;
+    }else{
+        FinRutasLCS->sig=Nuevo;
+        FinRutasLCS=Nuevo;
+        FinRutasLCS->sig=InicioRutasLCS;
+    }
+}
+
 //                      LISTA DOBLE CARACTERES
 
 void InsertarALFinal(LCD &Inicio, LCD &Fin, string Caracter){
@@ -71,7 +98,7 @@ void BorrarUltimo(LCD &Inicio,LCD &Fin){
     }
 }
 void ImprimirLista(LCD &Inicio){
-    move(0,0);refresh();
+    if(Permiso==false){move(0,0);refresh();}else{move(1,0);refresh();}
     LCD Aux=Inicio;
     while(true){
         if(wherex()==Ancho-1){
@@ -91,25 +118,6 @@ void ImprimirLista(LCD &Inicio){
     }
 }
 
-void SplitBR(string PALABRA){
-    string delimiter = ";";
-    size_t pos = 0;
-    string token;
-    pos = PALABRA.find(delimiter);
-    token = PALABRA.substr(0, pos);
-    PalB=token;
-    PALABRA.erase(0, pos + delimiter.size());
-    PalR=PALABRA;
-}
-
-
-void RecargarEditor(){
-    initscr();
-    move(0,0);
-    refresh();
-}
-
-
 void MenuOpcionEditor(){
     move(0,0);
     refresh();
@@ -119,9 +127,9 @@ void MenuOpcionEditor(){
     move(0,0);
     refresh();
 }
-void RemplazarNodo_Agregar(LCD &PrimerLetra,LCD &Espacio2){
+void RemplazarNodo_Agregar(LCD PrimerLetra,LCD Espacio2){
     LCD Espacio=PrimerLetra->ant;
-    for(int i=0;i<PalR.size();i++){
+    for(int i=0;i<(int)PalR.size();i++){
         LCD Nuevo=new (struct Caracteres);
         Nuevo->Caracter=PalR[i];
         Espacio->sig=Nuevo;
@@ -134,12 +142,11 @@ void RemplazarNodo_Agregar(LCD &PrimerLetra,LCD &Espacio2){
 void BuscarRempl(){
     LCD Aux=InicioLDC;
     LCD PrimLetra;
-    int ContarEspacios=0;
     string PalEncontrada="";
     while(true){
         if(Aux->Caracter==" "||Aux->Caracter=="enter"){
             if(PalEncontrada==PalB){
-                RemplazarNodo_Agregar(PrimLetra,Aux);
+
             }
             PalEncontrada="";
         }else{
@@ -151,17 +158,29 @@ void BuscarRempl(){
     }
 }
 
+void GuardarArchivo(string ruta){
+    LCD aux=InicioLDC;
+    char letra;
+    ofstream fichero;
+    fichero.open(ruta.c_str());
+    if(!fichero.fail()){
+        while(true){
+            if(aux->Caracter=="enter"){fichero<<"\n";}
+            else{fichero<<aux->Caracter;}
+            aux=aux->sig;
+            if(aux==NULL){break;}
+        }
+        fichero.close();
+    }
+}
 
 void Editor(){
-    ALTENTER();
     Resolucion();
     string PALBR;
     initscr();
     MenuOpcionEditor();
+    if(InicioLDC!=NULL){move(0,0);refresh();ImprimirLista(InicioLDC);}
     int c;
-    int blanco=32;
-    int columna;
-    int fila;
     string cadena;
     string BuscarRemplazar;
     do{
@@ -190,7 +209,6 @@ void Editor(){
             printw("INGRESE LA PALABRA A REEMPLAZAR Y LUEGO LA PALABRA CON LA QUE SE REEMPLAZARA\n");
             printw("\n");
             scanw("%s ; %s",PalB,PalR);
-            //SplitBR(PALBR);
             //METODO BUSCAR Y REEMPLAZAR
             BuscarRempl();
             clear();
@@ -205,8 +223,19 @@ void Editor(){
             move(fila,0);refresh();
         }else if(c==24){
             PalB="hola";
-            PalR="adop";
+            PalR="Resp";
             BuscarRempl();
+        }else if(c==19){
+            string ruta;
+            move(0,0);refresh();
+            clear();
+            printw("INGRESE LA RUTA DEL ARCHIVO\n");
+            printw("\n");
+            scanw("%s",ruta);refresh();
+            GuardarArchivo(ruta);
+            clear();
+            MenuOpcionEditor();
+            ImprimirLista(InicioLDC);
         }else{
             printw("%c",c);
             cadena=char(c);
@@ -215,12 +244,13 @@ void Editor(){
         refresh();
     }while(c!=20);
     cout<<"FIN DEL PROGRAMA...";
+    Permiso=false;
     endwin();
 }
 
 
-int Menu(){
-    int Opcion;
+string Menu(){
+    string Opcion;
     cout<<"UNIVERSIDAD SAN CARLOS DE GUATEMALA\n";
     cout<<"FACULTAD DE INGENIERIA\n";
     cout<<"ESTRUCTURA DE DATOS\n";
@@ -237,18 +267,46 @@ int Menu(){
     return Opcion;
 }
 
+void abrir_archivo(string ruta){
+    InicioLDC=NULL;
+    FinLDC=NULL;
+    char letra;
+    ifstream fichero;
+    fichero.open(ruta.c_str());
+    if(!fichero.fail()){
+        fichero.get(letra);
+        while(!fichero.eof()){
+            string s(1,letra);
+            if(letra=='\n'){InsertarALFinal(InicioLDC,FinLDC,"enter");}
+            else{InsertarALFinal(InicioLDC,FinLDC,s);}
+            fichero.get(letra);
+        }
+        AgregarRuta(ruta);
+        fichero.close();
+        Permiso=true;
+    Editor();
+    }
+}
+
 int _tmain(){
-    int Opcion;
+    ALTENTER();
+    string Opcion;
     do{
         Opcion=Menu();
-        if(Opcion==1){
+        if(Opcion=="1"){
+            InicioLDC=NULL;
+            FinLDC=NULL;
             Editor();
-        }else if(Opcion==2){
+        }else if(Opcion=="2"){
+            string ruta;
+            cout<<"INGRESE LA RUTA DEL ARCHIVO TXT \n";
+            cin>>ruta;
+            abrir_archivo(ruta);
+        }else if(Opcion=="3"){
 
-        }else if(Opcion==3){
         }
-    }while(Opcion!=4);
-
+    }while(Opcion!="4");
+    cout<<"PROGRAMA FINALIZADO";
     return 0;
 }
 
