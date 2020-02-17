@@ -127,11 +127,11 @@ void MenuOpcionEditor(){
     move(0,0);
     refresh();
 }
-void RemplazarNodo_Agregar(LCD PrimerLetra,LCD Espacio2){
+void RemplazarNodo_Agregar(LCD PrimerLetra,LCD Espacio2,string PR){
     LCD Espacio=PrimerLetra->ant;
-    for(int i=0;i<(int)PalR.size();i++){
+    for(int i=0;i<(int)PR.size();i++){
         LCD Nuevo=new (struct Caracteres);
-        Nuevo->Caracter=PalR[i];
+        Nuevo->Caracter=PR[i];
         Espacio->sig=Nuevo;
         Nuevo->ant=Espacio;
         Nuevo->sig=Espacio2;
@@ -139,28 +139,34 @@ void RemplazarNodo_Agregar(LCD PrimerLetra,LCD Espacio2){
         Espacio=Nuevo;
     }
 }
-void BuscarRempl(){
-    LCD Aux=InicioLDC;
-    LCD PrimLetra;
+void BuscarRempl(LCD &Inicio){
+    LCD Aux=Inicio;
+    LCD PRIMERCARACTER;
+    string PB,PR;
+    cout<<"INGRESE LA PALABRA A REEMPLAZAR Y LUEGO LA PALABRA CON LA QUE SE REEMPLAZARA\n";
+    cout<<"EJEMPLO:(HOLA HOLA2)";
+    cin>>PB>>PR;
     string PalEncontrada="";
     while(true){
         if(Aux->Caracter==" "||Aux->Caracter=="enter"){
-            if(PalEncontrada==PalB){
-
+            if(PalEncontrada==PB){
+                RemplazarNodo_Agregar(PRIMERCARACTER,Aux,PR);
             }
             PalEncontrada="";
         }else{
-            if(PalEncontrada==""){PrimLetra=Aux;}
+            if(PalEncontrada==""){PRIMERCARACTER=Aux;}
             PalEncontrada+=Aux->Caracter;
         }
         Aux=Aux->sig;
         if(Aux==NULL){break;}
+        FinLDC=Aux;
     }
+    cout<<"MetodoBuscar y Remplazar";
+    system("pause");
 }
 
 void GuardarArchivo(string ruta){
     LCD aux=InicioLDC;
-    char letra;
     ofstream fichero;
     fichero.open(ruta.c_str());
     if(!fichero.fail()){
@@ -206,11 +212,9 @@ void Editor(){
             FilaGeneral=wherey();ColumnaGeneral=wherex();
             move(0,0);refresh();
             clear();
-            printw("INGRESE LA PALABRA A REEMPLAZAR Y LUEGO LA PALABRA CON LA QUE SE REEMPLAZARA\n");
-            printw("\n");
-            scanw("%s ; %s",PalB,PalR);
-            //METODO BUSCAR Y REEMPLAZAR
-            BuscarRempl();
+            endwin();
+            BuscarRempl(InicioLDC);
+            initscr();
             clear();
             MenuOpcionEditor();
             ImprimirLista(InicioLDC);
@@ -224,7 +228,7 @@ void Editor(){
         }else if(c==24){
             PalB="hola";
             PalR="Resp";
-            BuscarRempl();
+            //BuscarRempl(InicioLDC);
         }else if(c==19){
             string ruta;
             move(0,0);refresh();
