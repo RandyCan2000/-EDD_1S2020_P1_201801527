@@ -127,8 +127,13 @@ void MenuOpcionEditor(){
     move(0,0);
     refresh();
 }
-void RemplazarNodo_Agregar(LCD PrimerLetra,LCD Espacio2,string PR){
-    LCD Espacio=PrimerLetra->ant;
+void RemplazarNodo_Agregar(LCD &PrimerLetra,LCD &Espacio2,string PR){
+    LCD Espacio;
+    if(PrimerLetra==InicioLDC){
+    }
+    else{
+        Espacio=PrimerLetra->ant;
+    }
     for(int i=0;i<(int)PR.size();i++){
         LCD Nuevo=new (struct Caracteres);
         Nuevo->Caracter=PR[i];
@@ -137,7 +142,7 @@ void RemplazarNodo_Agregar(LCD PrimerLetra,LCD Espacio2,string PR){
         Nuevo->sig=Espacio2;
         Espacio2->ant=Nuevo;
         Espacio=Nuevo;
-    }
+        }
 }
 void BuscarRempl(LCD &Inicio){
     LCD Aux=Inicio;
@@ -161,8 +166,6 @@ void BuscarRempl(LCD &Inicio){
         if(Aux==NULL){break;}
         FinLDC=Aux;
     }
-    cout<<"MetodoBuscar y Remplazar";
-    system("pause");
 }
 
 void GuardarArchivo(string ruta){
@@ -191,7 +194,7 @@ void Editor(){
     string BuscarRemplazar;
     do{
         c=getchar();
-        if(c==8){
+        if(c==8){//AL PRESIONAR BACKSPACE
             if(FinLDC->Caracter=="enter"){BorrarUltimo(InicioLDC,FinLDC);}
             int f=FinLDC->Fila;
             int c=FinLDC->Columna;
@@ -200,15 +203,7 @@ void Editor(){
             MenuOpcionEditor();
             ImprimirLista(InicioLDC);
             move(f,c);refresh();
-        }else if(c==16){
-            FilaGeneral=wherey();ColumnaGeneral=wherex();
-            system("cls");
-            MenuOpcionEditor();
-            ImprimirLista(InicioLDC);
-            move(FilaGeneral,ColumnaGeneral);
-            refresh();
-        }
-        else if(c==23){
+        }else if(c==23){//AL PRECIONAR CTRL W
             FilaGeneral=wherey();ColumnaGeneral=wherex();
             move(0,0);refresh();
             clear();
@@ -218,18 +213,18 @@ void Editor(){
             clear();
             MenuOpcionEditor();
             ImprimirLista(InicioLDC);
-        }else if(c==13){
+        }else if(c==13){//AL PRECIONAR enter
             InsertarALFinal(InicioLDC,FinLDC,"enter");
             int fila=wherey()+1;
             clear();
             MenuOpcionEditor();
             ImprimirLista(InicioLDC);
             move(fila,0);refresh();
-        }else if(c==24){
+        }else if(c==24){//AL PRESIONAR CTRL X
             PalB="hola";
             PalR="Resp";
             //BuscarRempl(InicioLDC);
-        }else if(c==19){
+        }else if(c==19){//AL PRESIONAR CTRL S
             string ruta;
             move(0,0);refresh();
             clear();
@@ -240,6 +235,10 @@ void Editor(){
             clear();
             MenuOpcionEditor();
             ImprimirLista(InicioLDC);
+        }else if(c==9){//AL PRECIONAR TAB
+            printw("%c",' ');
+            cadena=" ";
+            InsertarALFinal(InicioLDC,FinLDC,cadena);
         }else{
             printw("%c",c);
             cadena=char(c);
