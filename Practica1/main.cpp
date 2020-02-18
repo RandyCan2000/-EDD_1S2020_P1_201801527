@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <fstream>
+#include <cstdlib>
 using namespace std;
 int FilaGeneral;
 int ColumnaGeneral;
@@ -49,27 +50,26 @@ LCD FinLDC=NULL;
 struct Rutas{
     string Ruta;
     string Nombre;
-    string Reporte1;
-    string Reporte2;
-    string Reporte3;
-struct Rutas *sig=NULL;};
+    struct Rutas *sig=NULL;};
 typedef struct Rutas *R;
 R InicioRutasLCS=NULL;
 R FinRutasLCS=NULL;
-//agregar a lista circular
-void AgregarRuta(string ruta){
-    R Nuevo=new (struct Rutas);
-    Nuevo->Ruta=ruta;
-    if(InicioRutasLCS==NULL){
-        InicioRutasLCS=Nuevo;
-        FinRutasLCS=Nuevo;
-        FinRutasLCS->sig=InicioRutasLCS;
-    }else{
-        FinRutasLCS->sig=Nuevo;
-        FinRutasLCS=Nuevo;
-        FinRutasLCS->sig=InicioRutasLCS;
-    }
-}
+struct PilaCambios{
+    string PB="NULL";
+    string PR="NULL";
+    string Estado;
+    string Palabra="NULL";
+    int Fila;
+    int Columna;
+    struct PilaCambios *sig=NULL;
+    struct PilaCambios *ant=NULL;
+};
+typedef struct PilaCambios *PC;
+PC InicioPC=NULL;
+PC FinPC=NULL;
+PC InicioPR=NULL;
+PC FinPR=NULL;
+boolean PPR=false;
 
 //                      LISTA DOBLE CARACTERES
 
@@ -86,6 +86,104 @@ void InsertarALFinal(LCD &Inicio, LCD &Fin, string Caracter){
     }
     cout<<Caracter;
 }
+//Log
+
+void AgregarCambio(string Pb,string Pr,string caracter,int f,int c){
+    PC Nuevo=new (struct PilaCambios);
+    if(caracter == ""){
+        Nuevo->PB=Pb;
+        Nuevo->PR=Pr;
+    }else{
+        Nuevo->Palabra=caracter;
+        Nuevo->Fila=f;
+        Nuevo->Columna=c;
+    }
+    Nuevo->Estado="NO REVERTIDO";
+    if(InicioPC==NULL){
+        InicioPC=Nuevo;
+        FinPC=Nuevo;
+    }else{
+        FinPC->sig=Nuevo;
+        Nuevo->ant=FinPC;
+        FinPC=Nuevo;
+    }
+}
+void RemplazarNodo_Agregar(LCD &PrimerLetra,LCD &Espacio2,string PR){
+    LCD Espacio;
+    if(PrimerLetra==InicioLDC){
+    }
+    else{
+        Espacio=PrimerLetra->ant;
+    }
+    for(int i=0;i<(int)PR.size();i++){
+        LCD Nuevo=new (struct Caracteres);
+        Nuevo->Caracter=PR[i];
+        Espacio->sig=Nuevo;
+        Nuevo->ant=Espacio;
+        Nuevo->sig=Espacio2;
+        Espacio2->ant=Nuevo;
+        Espacio=Nuevo;
+        }
+}
+void BuscarRempl2(LCD &Inicio,string PB,string PR){
+    InsertarALFinal(InicioLDC,FinLDC," ");
+    LCD Aux=Inicio;
+    LCD PRIMERCARACTER;
+    string PalEncontrada="";
+    while(true){
+        if(Aux->Caracter==" "||Aux->Caracter=="enter"){
+            if(PalEncontrada==PB){
+                RemplazarNodo_Agregar(PRIMERCARACTER,Aux,PR);}
+            PalEncontrada="";
+        }else{
+            if(PalEncontrada==""){PRIMERCARACTER=Aux;}
+            PalEncontrada+=Aux->Caracter;
+        }
+        Aux=Aux->sig;
+        if(Aux==NULL){break;}
+        FinLDC=Aux;
+    }
+}
+void RevertirCambio(){
+    PC aux=NULL;
+    if(InicioPR==NULL){
+        FinPC->Estado="REVERTIDO";
+        InicioPR=FinPC;
+        FinPR=FinPC;
+        FinPR->ant=NULL;
+        FinPC=FinPC->ant;
+        FinPC->sig=NULL;
+    }else{
+        if(FinPC->ant!=NULL){aux=FinPC->ant;}
+        FinPC->Estado="REVERTIDO";
+        FinPR->sig=FinPC;
+        FinPC->ant=FinPR;
+        FinPR=FinPC;
+        FinPC=aux;
+    }
+    if(FinPR->PB=="NULL"){
+        InsertarALFinal(InicioLDC,FinLDC,FinPR->Palabra);
+    }else{
+        BuscarRempl2(InicioLDC,FinPR->PR,FinPR->PB);
+    }
+}
+
+//agregar a lista circular
+void AgregarRuta(string ruta){
+    R Nuevo=new (struct Rutas);
+    Nuevo->Ruta=ruta;
+    if(InicioRutasLCS==NULL){
+        InicioRutasLCS=Nuevo;
+        FinRutasLCS=Nuevo;
+        FinRutasLCS->sig=InicioRutasLCS;
+    }else{
+        FinRutasLCS->sig=Nuevo;
+        FinRutasLCS=Nuevo;
+        FinRutasLCS->sig=InicioRutasLCS;
+    }
+}
+
+
 void BorrarUltimo(LCD &Inicio,LCD &Fin){
     LCD Aux=Fin;
     if(Fin->ant==NULL && Fin->sig==NULL){
@@ -127,36 +225,21 @@ void MenuOpcionEditor(){
     move(0,0);
     refresh();
 }
-void RemplazarNodo_Agregar(LCD &PrimerLetra,LCD &Espacio2,string PR){
-    LCD Espacio;
-    if(PrimerLetra==InicioLDC){
-    }
-    else{
-        Espacio=PrimerLetra->ant;
-    }
-    for(int i=0;i<(int)PR.size();i++){
-        LCD Nuevo=new (struct Caracteres);
-        Nuevo->Caracter=PR[i];
-        Espacio->sig=Nuevo;
-        Nuevo->ant=Espacio;
-        Nuevo->sig=Espacio2;
-        Espacio2->ant=Nuevo;
-        Espacio=Nuevo;
-        }
-}
+
 void BuscarRempl(LCD &Inicio){
+    InsertarALFinal(InicioLDC,FinLDC," ");
     LCD Aux=Inicio;
     LCD PRIMERCARACTER;
     string PB,PR;
     cout<<"INGRESE LA PALABRA A REEMPLAZAR Y LUEGO LA PALABRA CON LA QUE SE REEMPLAZARA\n";
     cout<<"EJEMPLO:(HOLA HOLA2)";
     cin>>PB>>PR;
+    PalB=PB;PalR=PR;
     string PalEncontrada="";
     while(true){
         if(Aux->Caracter==" "||Aux->Caracter=="enter"){
             if(PalEncontrada==PB){
-                RemplazarNodo_Agregar(PRIMERCARACTER,Aux,PR);
-            }
+                RemplazarNodo_Agregar(PRIMERCARACTER,Aux,PR);}
             PalEncontrada="";
         }else{
             if(PalEncontrada==""){PRIMERCARACTER=Aux;}
@@ -183,6 +266,75 @@ void GuardarArchivo(string ruta){
     }
 }
 
+
+//Generacion de Reportes
+void REPRUTAS(){
+		ofstream Reporte4("C:\\Users\\Usuario\\Desktop\\Rutas.dot");
+		R aux = InicioRutasLCS;
+		//Inicio Grafiz
+		Reporte4<< "digraph G" << endl;
+		Reporte4<< "{" << endl;
+		Reporte4<< "node [shape = box, fontname = Arial, color = cyan];" <<endl;
+		int n = 0;
+		string nodoRuta[10000];
+		string Ordenador;
+		string F = "";
+		string cadena="";
+		if(InicioRutasLCS != NULL)
+		{
+			do
+			{
+			    //crear caja de ruta
+				Reporte4<< "R" <<n<< " [label = " <<"\"" << aux -> Nombre << "\\l" << aux -> Ruta <<"\"]" <<endl;
+				//guarda el nombre del nodo ruta
+				nodoRuta[n] = "R" + n;
+				cadena="";
+				n++;
+				aux = aux->sig;
+			}
+			while(aux != InicioRutasLCS);
+
+			for(int i = 0; i < n; i++)
+			{
+				Ordenador = Ordenador + nodoRuta[i] + " ";
+				if(i < n - 1)
+				{
+					F = F + nodoRuta[i] + "->";
+				}
+				else
+				{
+					F = F + nodoRuta[i];
+				}
+			}
+			F = F + "->" + "R0";//retorno de flecha a R0 para simular lista circular
+			Reporte4<< "{ rank = same " << Ordenador << "}" << endl;
+			Reporte4<< F <<endl;
+			Reporte4<< " " <<endl;
+			Reporte4<< "}";
+			Reporte4.close();
+			//Generar Imagen
+			system("C:\\\"Program Files (x86)\"\\Graphviz2.38\\bin\\dot.exe  -Tpng C:\\Users\\Usuario\\Desktop\\Rutas.dot -o C:\\Users\\Usuario\\Desktop\\Rutas.png");
+			//Abrir Imagen
+			system("C:\\Users\\Usuario\\Desktop\\Rutas.png &");
+		}
+
+	}
+
+	void mostrarArchivosRecientes(){
+        move(0,0);refresh();
+        cout<<"GENERAR REPORTES PRECIONE X"<<endl<<endl;
+        R Aux=InicioRutasLCS;
+        if(InicioRutasLCS!=NULL){
+            do{
+                cout<<"     "<<Aux->Ruta<<endl;
+                Aux=Aux->sig;
+            }while(Aux!=InicioRutasLCS);
+        }
+        int c;
+        c=getch();
+        if(c==120){REPRUTAS();}
+	}
+
 void Editor(){
     Resolucion();
     string PALBR;
@@ -198,6 +350,7 @@ void Editor(){
             if(FinLDC->Caracter=="enter"){BorrarUltimo(InicioLDC,FinLDC);}
             int f=FinLDC->Fila;
             int c=FinLDC->Columna;
+            AgregarCambio("","",FinLDC->Caracter,f,c);
             BorrarUltimo(InicioLDC,FinLDC);
             clear();
             MenuOpcionEditor();
@@ -209,6 +362,7 @@ void Editor(){
             clear();
             endwin();
             BuscarRempl(InicioLDC);
+            AgregarCambio(PalB,PalR,"",0,0);
             initscr();
             clear();
             MenuOpcionEditor();
@@ -220,10 +374,6 @@ void Editor(){
             MenuOpcionEditor();
             ImprimirLista(InicioLDC);
             move(fila,0);refresh();
-        }else if(c==24){//AL PRESIONAR CTRL X
-            PalB="hola";
-            PalR="Resp";
-            //BuscarRempl(InicioLDC);
         }else if(c==19){//AL PRESIONAR CTRL S
             string ruta;
             move(0,0);refresh();
@@ -239,14 +389,20 @@ void Editor(){
             printw("%c",' ');
             cadena=" ";
             InsertarALFinal(InicioLDC,FinLDC,cadena);
+        }else if(c==25){//AL PRECIONAR CTRL Z
+            RevertirCambio();
+            clear();
+            MenuOpcionEditor();
+            ImprimirLista(InicioLDC);
         }else{
             printw("%c",c);
             cadena=char(c);
             InsertarALFinal(InicioLDC,FinLDC,cadena);
         }
         refresh();
-    }while(c!=20);
+    }while(c!=24);
     cout<<"FIN DEL PROGRAMA...";
+    system("pause");
     Permiso=false;
     endwin();
 }
@@ -306,7 +462,7 @@ int _tmain(){
             cin>>ruta;
             abrir_archivo(ruta);
         }else if(Opcion=="3"){
-
+            mostrarArchivosRecientes();
         }
     }while(Opcion!="4");
     cout<<"PROGRAMA FINALIZADO";
