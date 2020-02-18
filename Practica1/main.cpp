@@ -26,6 +26,20 @@ int wherey(){
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
     return csbi.dwCursorPosition.Y;
 }
+string ConString(int i){      //   int to string en c++
+       string num;
+       int temp;
+       while(i / 10!=0){
+         temp=i%10;
+         i= i/10;
+         temp =temp + 48;
+         num = (char)temp + num;
+       }
+       i=i+48;
+       num = (char)i + num ;
+       return num;
+}
+
 void Resolucion(){
     Ancho = (GetSystemMetrics(SM_CXSCREEN) / 8) - 2;
     Alto = (GetSystemMetrics(SM_CYSCREEN) / 19) + 1;}
@@ -276,48 +290,71 @@ void REPRUTAS(){
 		Reporte4<< "{" << endl;
 		Reporte4<< "node [shape = box, fontname = Arial, color = cyan];" <<endl;
 		int n = 0;
-		string nodoRuta[10000];
 		string Ordenador;
-		string F = "";
-		string cadena="";
+		string Flecha;
 		if(InicioRutasLCS != NULL)
 		{
 			do
 			{
 			    //crear caja de ruta
-				Reporte4<< "R" <<n<< " [label = " <<"\"" << aux -> Nombre << "\\l" << aux -> Ruta <<"\"]" <<endl;
+				Reporte4<<"R"<<ConString(n)<< " [label = \""<< aux -> Ruta <<"\"]" <<endl;
 				//guarda el nombre del nodo ruta
-				nodoRuta[n] = "R" + n;
-				cadena="";
 				n++;
 				aux = aux->sig;
 			}
 			while(aux != InicioRutasLCS);
-
-			for(int i = 0; i < n; i++)
-			{
-				Ordenador = Ordenador + nodoRuta[i] + " ";
-				if(i < n - 1)
-				{
-					F = F + nodoRuta[i] + "->";
-				}
-				else
-				{
-					F = F + nodoRuta[i];
-				}
-			}
-			F = F + "->" + "R0";//retorno de flecha a R0 para simular lista circular
-			Reporte4<< "{ rank = same " << Ordenador << "}" << endl;
-			Reporte4<< F <<endl;
-			Reporte4<< " " <<endl;
-			Reporte4<< "}";
+            for(int i=0;i<n;i++){
+                Ordenador=Ordenador+"R"+ConString(i)+" ";
+            }
+            for(int i=0;i<n;i++){
+                Flecha=Flecha+"R"+ConString(i)+"->";
+            }
+            Reporte4 << "{ rank = same "+Ordenador+"}"<<endl;
+            Reporte4 <<Flecha+"R0"<<endl;
+            Reporte4 <<"}";
 			Reporte4.close();
 			//Generar Imagen
 			system("C:\\\"Program Files (x86)\"\\Graphviz2.38\\bin\\dot.exe  -Tpng C:\\Users\\Usuario\\Desktop\\Rutas.dot -o C:\\Users\\Usuario\\Desktop\\Rutas.png");
 			//Abrir Imagen
 			system("C:\\Users\\Usuario\\Desktop\\Rutas.png &");
 		}
+	}
 
+	void REPCARACTERES(){
+        ofstream Reporte("C:\\Users\\Usuario\\Desktop\\Caracteres.dot");
+        Reporte<< "digraph G" << endl;
+		Reporte<< "{" << endl;
+		Reporte<< "node [shape = box, fontname = Arial, color = black];" <<endl;
+		LCD Aux=InicioLDC;
+		int n=0;
+		string Ordenador;
+		string Flecha;
+		while(true){
+            Reporte<<"R"<<ConString(n)<< " [label = \""<< Aux->Caracter <<"\"]" <<endl;
+            n++;
+            Aux=Aux->sig;
+            if(Aux==NULL){break;}
+		}
+		for(int i=0;i<n;i++){
+            Ordenador=Ordenador+"R"+ConString(i)+" ";
+        }
+        for(int i=0;i<n;i++){
+            if(i==n-1){Flecha=Flecha+"R"+ConString(i);}
+            else{Flecha=Flecha+"R"+ConString(i)+"->";}
+        }
+        Reporte << "{ rank = same "+Ordenador+"}"<<endl;
+        Reporte <<Flecha<<endl;
+        Flecha="";
+        for(int i=n-1;i>=0;i--){
+            if(i==0){Flecha=Flecha+"R"+ConString(i);}
+            else{Flecha=Flecha+"R"+ConString(i)+"->";}
+        }
+        Reporte <<Flecha<<endl;
+        Reporte <<"}";
+        //Generar Imagen
+        system("C:\\\"Program Files (x86)\"\\Graphviz2.38\\bin\\dot.exe  -Tpng C:\\Users\\Usuario\\Desktop\\Caracteres.dot -o C:\\Users\\Usuario\\Desktop\\Caracteres.png");
+        //Abrir Imagen
+        system("C:\\Users\\Usuario\\Desktop\\Caracteres.png &");
 	}
 
 	void mostrarArchivosRecientes(){
@@ -394,6 +431,8 @@ void Editor(){
             clear();
             MenuOpcionEditor();
             ImprimirLista(InicioLDC);
+        }else if(c==3){//AL PRECIONAR CTRL C
+            REPCARACTERES();
         }else{
             printw("%c",c);
             cadena=char(c);
