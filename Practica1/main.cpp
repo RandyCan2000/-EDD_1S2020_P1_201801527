@@ -283,21 +283,74 @@ void MenuOpcionEditor(){
 
 
 
-void GuardarArchivo(string ruta){
-    LCD aux=InicioLDC;
-    ofstream fichero;
-    fichero.open(ruta.c_str());
-    if(!fichero.fail()){
-        while(true){
-            if(aux->Caracter=="enter"){fichero<<"\n";}
-            else{fichero<<aux->Caracter;}
-            aux=aux->sig;
-            if(aux==NULL){break;}
-        }
-        fichero.close();
+void GuardarArchivo(string Ruta){
+    cout<<Ruta;
+    system("Pause");
+    LCD Aux=InicioLDC;
+    move(0,0);refresh();
+    clear();
+    printw("INGRESE LA RUTA DEL ARCHIVO\n");
+    printw("EJEMPLO (C:\\Users\\Usuario\\Desktop\\nuevo.txt)\n");refresh();
+    cin>>Ruta;
+    ofstream Archivo(Ruta.c_str());
+    while(true){
+        if(Aux->Caracter=="enter"){Archivo<<"\n";}
+        else{Archivo<<Aux->Caracter;}
+        Aux=Aux->sig;
+        if(Aux==NULL){break;}
     }
+    Archivo.close();
 }
-
+void REPLOG(){
+    ofstream Reporte("C:\\Users\\Usuario\\Desktop\\Log.dot");
+    Reporte<< "digraph G" << endl;
+    Reporte<< "{" << endl;
+    //log de Cambio
+    Reporte<< "node [shape = box, fontname = Arial, color = green];" <<endl;
+    PC Aux=InicioPC;
+    int n=0;
+    string Orden;
+    string Flecha;
+    if(Aux!=NULL){
+        while(true){
+        Reporte<<"PC"<<ConString(n)<< " [label = \" PALABRA BUSCAR:"<<Aux->PB<<"\nPALABRA REMPLAZAR:"<<Aux->PR<<"\nESTADO:"<<Aux->Estado<<"\"]"<<endl;
+        n++;
+        Aux=Aux->sig;
+        if(Aux==NULL){break;}
+    }
+    }
+    for(int i=0;i<n;i++){
+        Orden=Orden+"PC"+ConString(n)+" ";
+        if(i==n-1){Flecha=Flecha+"PC"+ConString(n);}
+        else{Flecha=Flecha+"PC"+ConString(n)+"->";}
+    }
+    Reporte << "{ rank = same "+Orden+"}"<<endl;
+    Reporte <<Flecha<<endl;
+    Reporte<< "node [shape = box, fontname = Arial, color = red];" <<endl;
+    n=0;Orden="";Flecha="";
+    Aux=InicioPR;
+    if(Aux!=NULL){
+        while(true){
+        Reporte<<"PR"<<ConString(n)<< " [label = \" PALABRA BUSCAR:"<<Aux->PB<<"\nPALABRA REMPLAZAR:"<<Aux->PR<<"\nESTADO:"<<Aux->Estado<<"\"]"<<endl;
+        n++;
+        Aux=Aux->sig;
+        if(Aux==NULL){break;}
+    }
+    }
+    for(int i=0;i<n;i++){
+        Orden=Orden+"PR"+ConString(n)+" ";
+        if(i==n-1){Flecha=Flecha+"PR"+ConString(n);}
+        else{Flecha=Flecha+"PR"+ConString(n)+"->";}
+    }
+    Reporte<< "{ rank = same "+Orden+"}"<<endl;
+    Reporte<<Flecha<<endl;
+    Reporte<< "}";
+    Reporte.close();
+    //Generar Imagen
+    system("C:\\\"Program Files (x86)\"\\Graphviz2.38\\bin\\dot.exe  -Tpng C:\\Users\\Usuario\\Desktop\\Log.dot -o C:\\Users\\Usuario\\Desktop\\Log.png");
+    //Abrir Imagen
+    system("C:\\Users\\Usuario\\Desktop\\Log.png &");
+}
 
 //Generacion de Reportes
 void REPRUTAS(){
@@ -348,12 +401,14 @@ void REPRUTAS(){
 		string Ordenador;
 		string Flecha;
 		string Car;
-		while(true){
+		if(Aux!=NULL){
+            while(true){
             if(Aux->Caracter=="\n"){Car="enter";}else{Car=Aux->Caracter;}
             Reporte<<"R"<<ConString(n)<< " [label = \""<< Car <<"\"]"<<endl;
             n++;
             Aux=Aux->sig;
             if(Aux==NULL){break;}
+		}
 		}
 		for(int i=0;i<n;i++){
             Ordenador=Ordenador+"R"+ConString(i)+" ";
@@ -400,6 +455,7 @@ void MenReportes(){
         REPCARACTERES();
     }else if(c==50){
         //LOG
+        REPLOG();
     }else if(c==51){
         //Pal Ordenadas
     }
@@ -447,10 +503,12 @@ void Editor(){
             string ruta;
             move(0,0);refresh();
             clear();
-            printw("INGRESE LA RUTA DEL ARCHIVO\n");
-            printw("\n");
-            scanw("%s",ruta);refresh();
-            GuardarArchivo(ruta);
+            string Ruta;
+            cout<<"INGRESE LA RUTA";
+            cin>>Ruta;
+            GuardarArchivo(Ruta);
+            endwin();
+            initscr();
             clear();
             MenuOpcionEditor();
             ImprimirLista(InicioLDC);
