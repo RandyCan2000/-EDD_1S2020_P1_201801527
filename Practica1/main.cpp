@@ -321,7 +321,7 @@ void REPRUTAS(){
 	}
 
 	void REPCARACTERES(){
-        ofstream Reporte("C:\\Users\\Usuario\\Desktop\\Caracteres.dot");
+        ofstream Reporte("C:\\Users\\Usuario\\Desktop\\caracteres.dot");
         Reporte<< "digraph G" << endl;
 		Reporte<< "{" << endl;
 		Reporte<< "node [shape = box, fontname = Arial, color = black];" <<endl;
@@ -329,8 +329,10 @@ void REPRUTAS(){
 		int n=0;
 		string Ordenador;
 		string Flecha;
+		string Car;
 		while(true){
-            Reporte<<"R"<<ConString(n)<< " [label = \""<< Aux->Caracter <<"\"]" <<endl;
+            if(Aux->Caracter=="\n"){Car="enter";}else{Car=Aux->Caracter;}
+            Reporte<<"R"<<ConString(n)<< " [label = \""<< Car <<"\"]"<<endl;
             n++;
             Aux=Aux->sig;
             if(Aux==NULL){break;}
@@ -339,22 +341,20 @@ void REPRUTAS(){
             Ordenador=Ordenador+"R"+ConString(i)+" ";
         }
         for(int i=0;i<n;i++){
-            if(i==n-1){Flecha=Flecha+"R"+ConString(i);}
-            else{Flecha=Flecha+"R"+ConString(i)+"->";}
+            Flecha=Flecha+"R"+ConString(i)+"->";
         }
         Reporte << "{ rank = same "+Ordenador+"}"<<endl;
-        Reporte <<Flecha<<endl;
-        Flecha="";
-        for(int i=n-1;i>=0;i--){
+        for(int i=n-2;i>=0;i--){
             if(i==0){Flecha=Flecha+"R"+ConString(i);}
             else{Flecha=Flecha+"R"+ConString(i)+"->";}
         }
         Reporte <<Flecha<<endl;
         Reporte <<"}";
+        Reporte.close();
         //Generar Imagen
-        system("C:\\\"Program Files (x86)\"\\Graphviz2.38\\bin\\dot.exe  -Tpng C:\\Users\\Usuario\\Desktop\\Caracteres.dot -o C:\\Users\\Usuario\\Desktop\\Caracteres.png");
+        system("C:\\\"Program Files (x86)\"\\Graphviz2.38\\bin\\dot.exe  -Tpng C:\\Users\\Usuario\\Desktop\\caracteres.dot -o C:\\Users\\Usuario\\Desktop\\caracteres.png");
         //Abrir Imagen
-        system("C:\\Users\\Usuario\\Desktop\\Caracteres.png &");
+        system("C:\\Users\\Usuario\\Desktop\\caracteres.png &");
 	}
 
 	void mostrarArchivosRecientes(){
@@ -371,6 +371,21 @@ void REPRUTAS(){
         c=getch();
         if(c==120){REPRUTAS();}
 	}
+
+void MenReportes(){
+    string Opcion;
+    printf("REPORTES:\n");
+    printf("1.LISTA CARACTERES   2.PALABRAS BUSCADAS     3.PALABRAS ORDENADAS\n");
+    int c;
+    c=getch();
+    if(c==49){
+        REPCARACTERES();
+    }else if(c==50){
+        //LOG
+    }else if(c==51){
+        //Pal Ordenadas
+    }
+}
 
 void Editor(){
     Resolucion();
@@ -422,6 +437,7 @@ void Editor(){
             clear();
             MenuOpcionEditor();
             ImprimirLista(InicioLDC);
+            c=0;
         }else if(c==9){//AL PRECIONAR TAB
             printw("%c",' ');
             cadena=" ";
@@ -432,7 +448,14 @@ void Editor(){
             MenuOpcionEditor();
             ImprimirLista(InicioLDC);
         }else if(c==3){//AL PRECIONAR CTRL C
-            REPCARACTERES();
+            clear();
+            move(0,0);refresh();
+            MenReportes();
+            endwin();
+            initscr();
+            clear();
+            MenuOpcionEditor();
+            ImprimirLista(InicioLDC);
         }else{
             printw("%c",c);
             cadena=char(c);
