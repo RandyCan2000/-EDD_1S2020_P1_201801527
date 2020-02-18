@@ -83,7 +83,7 @@ PC InicioPC=NULL;
 PC FinPC=NULL;
 PC InicioPR=NULL;
 PC FinPR=NULL;
-boolean PPR=false;
+boolean PermisoBuscarYRemplazar=false;
 
 //                      LISTA DOBLE CARACTERES
 
@@ -100,28 +100,7 @@ void InsertarALFinal(LCD &Inicio, LCD &Fin, string Caracter){
     }
     cout<<Caracter;
 }
-//Log
 
-void AgregarCambio(string Pb,string Pr,string caracter,int f,int c){
-    PC Nuevo=new (struct PilaCambios);
-    if(caracter == ""){
-        Nuevo->PB=Pb;
-        Nuevo->PR=Pr;
-    }else{
-        Nuevo->Palabra=caracter;
-        Nuevo->Fila=f;
-        Nuevo->Columna=c;
-    }
-    Nuevo->Estado="NO REVERTIDO";
-    if(InicioPC==NULL){
-        InicioPC=Nuevo;
-        FinPC=Nuevo;
-    }else{
-        FinPC->sig=Nuevo;
-        Nuevo->ant=FinPC;
-        FinPC=Nuevo;
-    }
-}
 void RemplazarNodo_Agregar(LCD &PrimerLetra,LCD &Espacio2,string PR){
     LCD Espacio;
     if(PrimerLetra==InicioLDC){
@@ -139,10 +118,19 @@ void RemplazarNodo_Agregar(LCD &PrimerLetra,LCD &Espacio2,string PR){
         Espacio=Nuevo;
         }
 }
-void BuscarRempl2(LCD &Inicio,string PB,string PR){
+void BuscarRempl(LCD &Inicio){
     InsertarALFinal(InicioLDC,FinLDC," ");
     LCD Aux=Inicio;
     LCD PRIMERCARACTER;
+    string PB,PR;
+    if(PermisoBuscarYRemplazar==false){
+        cout<<"INGRESE LA PALABRA A REEMPLAZAR Y LUEGO LA PALABRA CON LA QUE SE REEMPLAZARA\n";
+        cout<<"EJEMPLO:(HOLA HOLA2)";
+        cin>>PB>>PR;
+        PalB=PB;PalR=PR;
+    }else{
+    PB=PalB;PR=PalR;
+    }
     string PalEncontrada="";
     while(true){
         if(Aux->Caracter==" "||Aux->Caracter=="enter"){
@@ -158,27 +146,80 @@ void BuscarRempl2(LCD &Inicio,string PB,string PR){
         FinLDC=Aux;
     }
 }
-void RevertirCambio(){
-    PC aux=NULL;
-    if(InicioPR==NULL){
-        FinPC->Estado="REVERTIDO";
-        InicioPR=FinPC;
-        FinPR=FinPC;
-        FinPR->ant=NULL;
-        FinPC=FinPC->ant;
-        FinPC->sig=NULL;
+//Log
+
+void AgregarCambio(string Pb,string Pr){
+    PC Nuevo=new (struct PilaCambios);
+    Nuevo->PB=Pb;
+    Nuevo->PR=Pr;
+    Nuevo->Estado="NO REVERTIDO";
+    if(InicioPC==NULL){
+        InicioPC=Nuevo;
+        FinPC=Nuevo;
     }else{
-        if(FinPC->ant!=NULL){aux=FinPC->ant;}
-        FinPC->Estado="REVERTIDO";
-        FinPR->sig=FinPC;
-        FinPC->ant=FinPR;
-        FinPR=FinPC;
-        FinPC=aux;
+        FinPC->sig=Nuevo;
+        Nuevo->ant=FinPC;
+        FinPC=Nuevo;
     }
-    if(FinPR->PB=="NULL"){
-        InsertarALFinal(InicioLDC,FinLDC,FinPR->Palabra);
+}
+void AgregarPilaRevertido(string Pb,string Pr){
+    PC Nuevo=new (struct PilaCambios);
+    Nuevo->PB=Pb;
+    Nuevo->PR=Pr;
+    Nuevo->Estado="REVERTIDO";
+    if(FinPR==NULL){
+        FinPR=Nuevo;
+        InicioPR=Nuevo;
     }else{
-        BuscarRempl2(InicioLDC,FinPR->PR,FinPR->PB);
+        FinPR->sig=Nuevo;
+        Nuevo->ant=FinPR;
+        FinPR=Nuevo;
+    }
+}
+void QuitarCambio(){
+    if(InicioPC!=NULL){
+        if(FinPC==InicioPC){
+            AgregarPilaRevertido(FinPC->PB,FinPC->PR);
+            PalR=FinPC->PB;PalB=FinPC->PR;
+            PermisoBuscarYRemplazar=true;
+            BuscarRempl(InicioLDC);
+            PermisoBuscarYRemplazar=false;
+            FinPC=NULL;
+            InicioPC=NULL;
+        }else{
+            AgregarPilaRevertido(FinPC->PB,FinPC->PR);
+            PalR=FinPC->PB;PalB=FinPC->PR;
+            PermisoBuscarYRemplazar=true;
+            BuscarRempl(InicioLDC);
+            PermisoBuscarYRemplazar=false;
+            FinPC=FinPC->ant;
+            FinPC->sig=NULL;
+        }
+    }
+
+}
+
+void QuitarPilaRevertido(){
+    if(InicioPR!=NULL){
+        if(FinPR==InicioPR){
+            AgregarCambio(FinPR->PB,FinPR->PR);
+            //buscar y remplazar normal
+            PalR=FinPR->PR;PalB=FinPR->PB;
+            PermisoBuscarYRemplazar=true;
+            BuscarRempl(InicioLDC);
+            PermisoBuscarYRemplazar=false;
+            FinPR=NULL;
+            InicioPR=NULL;
+        }else{
+            AgregarCambio(FinPR->PB,FinPR->PR);
+            //buscar y remplazar normal
+            PalR=FinPR->PR;PalB=FinPR->PB;
+            PermisoBuscarYRemplazar=true;
+            BuscarRempl(InicioLDC);
+            PermisoBuscarYRemplazar=false;
+            FinPR=FinPR->ant;
+            FinPR->sig=NULL;
+    }
     }
 }
 
@@ -240,30 +281,7 @@ void MenuOpcionEditor(){
     refresh();
 }
 
-void BuscarRempl(LCD &Inicio){
-    InsertarALFinal(InicioLDC,FinLDC," ");
-    LCD Aux=Inicio;
-    LCD PRIMERCARACTER;
-    string PB,PR;
-    cout<<"INGRESE LA PALABRA A REEMPLAZAR Y LUEGO LA PALABRA CON LA QUE SE REEMPLAZARA\n";
-    cout<<"EJEMPLO:(HOLA HOLA2)";
-    cin>>PB>>PR;
-    PalB=PB;PalR=PR;
-    string PalEncontrada="";
-    while(true){
-        if(Aux->Caracter==" "||Aux->Caracter=="enter"){
-            if(PalEncontrada==PB){
-                RemplazarNodo_Agregar(PRIMERCARACTER,Aux,PR);}
-            PalEncontrada="";
-        }else{
-            if(PalEncontrada==""){PRIMERCARACTER=Aux;}
-            PalEncontrada+=Aux->Caracter;
-        }
-        Aux=Aux->sig;
-        if(Aux==NULL){break;}
-        FinLDC=Aux;
-    }
-}
+
 
 void GuardarArchivo(string ruta){
     LCD aux=InicioLDC;
@@ -402,7 +420,6 @@ void Editor(){
             if(FinLDC->Caracter=="enter"){BorrarUltimo(InicioLDC,FinLDC);}
             int f=FinLDC->Fila;
             int c=FinLDC->Columna;
-            AgregarCambio("","",FinLDC->Caracter,f,c);
             BorrarUltimo(InicioLDC,FinLDC);
             clear();
             MenuOpcionEditor();
@@ -414,7 +431,7 @@ void Editor(){
             clear();
             endwin();
             BuscarRempl(InicioLDC);
-            AgregarCambio(PalB,PalR,"",0,0);
+            AgregarCambio(PalB,PalR);
             initscr();
             clear();
             MenuOpcionEditor();
@@ -442,8 +459,13 @@ void Editor(){
             printw("%c",' ');
             cadena=" ";
             InsertarALFinal(InicioLDC,FinLDC,cadena);
-        }else if(c==25){//AL PRECIONAR CTRL Z
-            RevertirCambio();
+        }else if(c==25){//AL PRECIONAR CTRL Y
+            QuitarPilaRevertido();
+            clear();
+            MenuOpcionEditor();
+            ImprimirLista(InicioLDC);
+        }else if(c==1){//AL PRECIONAR CTRL Z
+            QuitarCambio();
             clear();
             MenuOpcionEditor();
             ImprimirLista(InicioLDC);
