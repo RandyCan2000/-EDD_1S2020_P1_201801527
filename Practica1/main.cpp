@@ -123,6 +123,7 @@ void BuscarRempl(LCD &Inicio){
     LCD Aux=Inicio;
     LCD PRIMERCARACTER;
     string PB,PR;
+    int Contador=0;
     if(PermisoBuscarYRemplazar==false){
         cout<<"INGRESE LA PALABRA A REEMPLAZAR Y LUEGO LA PALABRA CON LA QUE SE REEMPLAZARA\n";
         cout<<"EJEMPLO:(HOLA HOLA2)";
@@ -135,6 +136,7 @@ void BuscarRempl(LCD &Inicio){
     while(true){
         if(Aux->Caracter==" "||Aux->Caracter=="enter"){
             if(PalEncontrada==PB){
+                Contador++;
                 RemplazarNodo_Agregar(PRIMERCARACTER,Aux,PR);}
             PalEncontrada="";
         }else{
@@ -145,6 +147,9 @@ void BuscarRempl(LCD &Inicio){
         if(Aux==NULL){break;}
         FinLDC=Aux;
     }
+    cout<<endl;
+    cout<<"SE CAMBIARON "<<ConString(Contador)<<" PALABRAS"<<endl;
+    system("pause");
 }
 //Log
 
@@ -277,6 +282,8 @@ void MenuOpcionEditor(){
     cout<<"^W BUSCAR Y REEMPLAZAR   ";
     cout<<"^C REPORTES  ";
     cout<<"^S GUARDAR   ";
+    cout<<"^A DESHACER   ";
+    cout<<"^Y REHACER   ";
     move(0,0);
     refresh();
 }
@@ -301,6 +308,45 @@ void GuardarArchivo(string Ruta){
     }
     Archivo.close();
 }
+void RepPalOrdenadas(){
+    ofstream Reporte("C:\\Users\\Usuario\\Desktop\\PO.dot");
+    Reporte<< "digraph G" << endl;
+    Reporte<< "{" << endl;
+    //log de Cambio
+    Reporte<< "node [shape = box, fontname = Arial, color = grey];" <<endl;
+    string AB="abcdefghijklmnopqrstuvwxyz";
+    string ABM="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    string Pal="";
+    string Orden="";
+    string Flecha="";
+    int n=0;
+    LCD aux=InicioLDC;
+        while(true){
+            if(aux->Caracter==" "||aux->Caracter=="enter"){
+                if(Pal!=""){Reporte<<"P"<<ConString(n)<< " [label = \""<< Pal <<"\"]" <<endl;n++;}
+                Pal="";
+            }else{
+                Pal+=aux->Caracter;
+            }
+            aux=aux->sig;
+            if(aux==NULL){break;}
+        }
+    for(int i=0;i<n;i++){
+        Orden=Orden+"P"+ConString(i)+" ";
+        if(i==n-1){Flecha=Flecha+"P"+ConString(i);}
+        else{Flecha=Flecha+"P"+ConString(i)+"->";}
+    }
+
+    Reporte<< "{ rank = same "+Orden+"}"<<endl;
+    Reporte<<Flecha<<endl;
+    Reporte<< "}";
+    Reporte.close();
+    //Generar Imagen
+    system("C:\\\"Program Files (x86)\"\\Graphviz2.38\\bin\\dot.exe  -Tpng C:\\Users\\Usuario\\Desktop\\PO.dot -o C:\\Users\\Usuario\\Desktop\\PO.png");
+    //Abrir Imagen
+    system("C:\\Users\\Usuario\\Desktop\\PO.png &");
+}
+
 void REPLOG(){
     ofstream Reporte("C:\\Users\\Usuario\\Desktop\\Log.dot");
     Reporte<< "digraph G" << endl;
@@ -309,8 +355,8 @@ void REPLOG(){
     Reporte<< "node [shape = box, fontname = Arial, color = green];" <<endl;
     PC Aux=InicioPC;
     int n=0;
-    string Orden;
-    string Flecha;
+    string Orden="";
+    string Flecha="";
     if(Aux!=NULL){
         while(true){
         Reporte<<"PC"<<ConString(n)<< " [label = \" PALABRA BUSCAR:"<<Aux->PB<<"\nPALABRA REMPLAZAR:"<<Aux->PR<<"\nESTADO:"<<Aux->Estado<<"\"]"<<endl;
@@ -458,6 +504,7 @@ void MenReportes(){
         REPLOG();
     }else if(c==51){
         //Pal Ordenadas
+        RepPalOrdenadas();
     }
 }
 
